@@ -14,17 +14,25 @@ Usage:
   Usage $program [Options]
 
   Input options:
-  	-f/--file  	Base seach location
+  	-d/--directory  	Base seach location
 	-s/--size		File size you want to search for
 	-h/--help 	Display this help and exit
     -v/--ver/--version 	Dislpays script verision
 
-  converter.py -f /Volumes/TV Shows/ -s 1.1G
+  converter.py -d /Volumes/TV Shows/ -s 1.1G
+
 '''
 from __future__ import print_function
-import os, sys, getopt
+import os, sys, getopt, logging
 from os.path import expanduser
 
+logging.basicConfig(
+    format = '%(levelname)s::%(asctime)s::%(funcName)s::%(message)s',
+    level = logging.DEBUG,
+    filename = 'debug.log'
+    )
+
+logger = logging.getLogger(__name__)
 
 version=1.0
 ver = sys.version_info[0] > 2
@@ -32,8 +40,9 @@ ver = sys.version_info[0] > 2
 org=expanduser('~/Movies/original/')
 conv=expanduser('~/Movies/converted/')
 
-find_file=None
+directory=None
 size=None
+found = None
 
 #check that the directories exist, and if not create them
 
@@ -42,55 +51,69 @@ class Usage(Exception):
         self.msg = msg
 
 def usage(msg=None):
+    logging.info('we hit the def usage function')
     print(__doc__)
     if msg:
         print(msg)
     return 0
 
 def path_exists():
-	if not os.path.isdir(org):
-		try:
-			os.makedirs(org)
-		except (SystemExit):
-			raise
-	if not os.path.isdir(conv):
-		try:
-			os.makedirs(conv)
-		except (SystemExit):
-			raise
+    logging.info('Checking Path')
+    if not os.path.isdir(org):
+        try:
+            os.makedirs(org)
+        except (SystemExit):
+            raise
+    if not os.path.isdir(conv):
+        try:
+            os.makedirs(conv)
+        except (SystemExit):
+            raise
+
+def find_files(directory):
+    logging.info('finding files')
+    for folder, subfolder, filenames in os.scandir(directory):
+        for name in filenames:
+            if os.path.getsize(directory + name) > size:
+                found.write(name)
+                found.close()
 
 def parseOptions(argv):
-    global find_file
+    logging.info('parsing options')
+    global directory
     global size
     while True:
         try:
             try:
-                opts,args = getopt.getopt(argv[1:],'hv:f:s:',['size','ver','version','help','file='])
+                opts,args = getopt.getopt(argv[1:],'hvd:s:',['size','version','help','directory='])
             except getopt.error as exc:
-                return usage('Error: {}'.format(str(msg)))
+                print(exc)
+                usage()
+                return 0
             for o,a in opts:
                 if o in ('-h','--help'):
                     usage()
                     return 0
-                elif o in ('-f','--file'):
-                    file = setFile(a)
+                elif o in ('-d','--directory'):
+                    directory = a
                 elif o in ('-s','--size'):
-                    size=(a)
-                elif o in ('-v','--ver','--version'):
+                    size = a
+                elif o in ('-v','--version'):
                     print('Transcoder Version: {}'.format(version))
                     return 0
                 else:
                     return usage('Error: Unknown option, exiting...')
-            if not find_file:
-                return usage('Error: Input file (-f/--file) not provided, exiting.')
-            break
+            if not directory:
+                return usage('Error: Base search directory (-d/--director) not provided, exiting.')
+            if not size:
+                return usage('Error: File size  (-s/--size) not provided, exiting.')
         except Exception as exc:
             return usage('Error initializaing. {}'.format(str(exc)))
     return 1
 
-#def find_files
 
 def main(argv=None):
+    logging.info('starting script now')
     if argv is None:
         argv = sys.argv
         init = parseOptions(argv)
@@ -98,6 +121,10 @@ def main(argv=None):
             return 0
         elif init == 1:
         	return 1
+    try:
+        path_exists()
+    except(SystemExit):
+        raise
 
 if __name__ == '__main__':
     try:
