@@ -18,14 +18,14 @@ Usage:
   converter.py -d /Volumes/TV Shows/ -s 1.6G
 '''
 
-import os, sys, getopt, logging
+import os, sys, getopt, humanize, glob, logging
+from pathlib import Path
 from os.path import expanduser
-from time import sleep
+
 
 logging.basicConfig(
     format = '%(levelname)s::%(asctime)s::%(funcName)s::%(message)s',
     level = logging.DEBUG,
-    filename = 'debug.log'
     )
 
 logger = logging.getLogger(__name__)
@@ -33,14 +33,13 @@ logger = logging.getLogger(__name__)
 version = 1.0
 ver = sys.version_info[0] > 2
 
-org = expanduser('~/Movies/original/')
-conv = expanduser('~/Movies/converted/')
-found = open(expanduser('~/Movies/') + 'found.txt', 'w')
-
-path = None
+directory = None
 size = None
 
-#check that the directories exist, and if not create them
+org = expanduser('~/Converter/original/')
+conv = expanduser('~/Converter/modified/')
+found = expanduser('~/Converter/found.txt')
+
 
 class Usage(Exception):
     def __init__(self,msg):
@@ -52,36 +51,8 @@ def usage(msg=None):
     if msg:
         print(msg)
 
-def path_exists():
-    logging.info('Checking Path')
-    try:
-        if not os.path.isdir(org):
-            os.makedirs(org)
-        elif not os.path.isdir(conv):
-            os.makedirs(conv)
-    except Exception as esc:
-        print('Error {}'.format(str(esc)))
-        return
-    return 1
-
-
-def find_files(f):
-    logging.info('finding files')
-    with os.scandir(f) as directory:
-        print(f)
-        for folder, subfolder, filenames in directory:
-            print(folder)
-            print(subfolder)
-            print(filenames)
-            for subfolder in directory:
-                for filenames in subfolder:
-                    if os.path.getsize(path + name) > size:
-                        files.write(name)
-                        files.close()
-
-
 def parseOptions(argv):
-    global path
+    global directory
     global size
     while True:
         try:
@@ -96,20 +67,40 @@ def parseOptions(argv):
                 elif o in ('-v','--version'):
                     return usage('Transcoder Version: {}'.format(version))
                 elif o in ('-d','--directory'):
-                    logging.info('Directory found')
-                    path = find_files(a + '/')
+                    directory = str(a)
                 elif o in ('-s','--size'):
-                    size = a
-                    logging.info('Size Found')
-                else:
-                    return usage('Error: Unknown option, exiting...')
-            if not path:
-                return usage('Error: Base search directory (-d/--director) not provided, exiting.')
-            if not size:
-                return usage('Error: File size  (-s/--size) not provided, exiting.')
+                    if not directory:
+                        return usage('Error: Base search directory (-d/--directory) not provided, exiting.')
+                        if not size:
+                            return usage('Error: File size  (-s/--size) not provided, exiting.')
         except Exception as exc:
             return usage('Error:{}'.format(str(exc)))
         return 1
+
+def path_exists():
+    try:
+        if not os.path.isdir(org):
+            os.makedirs(org)
+        if not os.path.isdir(conv):
+            os.makedirs(conv)
+    except Exception as esc:
+        print('Error {}'.format(str(esc)))
+        return
+    return 1
+
+def find_files():
+    logging.info('finding files')
+    os.chdir(directory)
+    with open(found, 'w') as files:
+        logging.info(directory)
+        for f in glob.glob('**/*.mkv'):
+            files.write(f + '\n')
+
+
+
+#def clean_up():
+
+
 
 def main(argv=None):
     if len(sys.argv) <= 1:
