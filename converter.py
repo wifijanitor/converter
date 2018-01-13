@@ -36,7 +36,7 @@ from os.path import expanduser
 
 
 logging.basicConfig(
-    format='%(levelname)s::%(asctime)s::%(funcName)s::%(message)s',
+    format='%(asctime)s--%(funcName)s--%(levelname)s--%(message)s',
     level=logging.DEBUG,
 )
 
@@ -113,35 +113,40 @@ def path_exists():
 
 
 def find_files():
+    os.chdir(directory)
     with open(found, 'wt') as file:
-        logging.info('finding files')
-        os.chdir(directory)
-        for f in glob.glob('**/*.mkv'):
+        logging.info('Finding files')
+        for f in glob.iglob('**/*.m*', recursive=True):
             file.write(f + '\n')
 
 
 def convert():
     os.chdir(org)
+    print('This is where we are')
+    print(os.getcwd())
+    logging.info("Starting to convert ")
     with open(found, 'rt') as shows:
         for line in shows:
             line = line.rstrip().split('/')
-            if line[1] is None:
-                logging.info('Moving ' + line[0] + ' for conversion')
-                shutil.move(directory + '/' + line[0], org)
-                logging.info('Converting ' + line[0])
-                subprocess.run(
-                    'ffmpeg -sn -i ' + '"' + line[0] + '"' +
-                    ' -cv libx265 -crf 28 -c:a aac -b:a 128k ' +
-                    conv + '"' + line[0] + '"', shell=True
-                )
-            else:
+            print('This is the file we are moving')
+            print(line)
+            if len(line) < 1:
                 logging.info('Moving ' + line[1] + ' for conversion')
                 shutil.move(directory + '/' + line[0] + '/' + line[1], org)
                 logging.info('Converting ' + line[1])
                 subprocess.run(
                     'ffmpeg -sn -i ' + '"' + line[1] + '"' +
+                    ' -cv libx265 -crf 28 -c:a aac -b:a 128k ' +
+                    conv + '"' + line[1] + '"' + ' -hide_banner', shell=True
+                )
+            else:
+                logging.info('Moving ' + line[0] + ' for conversion')
+                shutil.move(directory + '/' + line[0], org)
+                logging.info('Converting ' + line[0])
+                subprocess.run(
+                    'ffmpeg -sn -i ' + '"' + line[0] + '"' +
                     ' -c:v libx265 -crf 28 -c:a aac -b:a  128k ' +
-                    conv + '"' + line[1] + '"', shell=True
+                    conv + '"' + line[0] + '"' + ' -hide_banner', shell=True
                 )
 
 
@@ -185,7 +190,7 @@ def main(argv=None):
             path_exists()
             find_files()
             convert()
-            clean_up()
+            # clean_up()
 
 
 if __name__ == '__main__':
