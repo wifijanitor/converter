@@ -163,7 +163,13 @@ def move_conv():
 def clean_up():
     os.chdir(org)
     logging.info("Cleaning up")
-    os.remove('*')
+    with open(found, 'rt') as shows:
+        for line in shows:
+            line = line.rstrip().split('/')
+            if line[1] is None:
+                os.remove(line[0])
+            else:
+                os.remove(line[1])
 
 
 def main(argv=None):
