@@ -122,31 +122,42 @@ def find_files():
 
 def convert():
     os.chdir(org)
-    with open(found, 'rt+') as shows:
+    with open(found, 'rt') as shows:
         for line in shows:
-            print(os.getcwd())
-            line = line.rstrip()
-            for part in line.split('/'):
-                folder = line[:9]
-                file = line[9:]
-                logging.info('Moving ' + file + ' for conversion')
-                shutil.move(directory + '/' + folder + file, org)
-                logging.info('Converting ' + file)
-                subprocess.run('ffmpeg -sn -i ' + '"' + file + '"' +
-                    ' -c:v libx265 -crf 28 -c:a aac -b:a  128k ' + conv + '"' + file + '"' , shell=True)
+            line = line.rstrip().split('/')
+            if line[1] is None:
+                logging.info('Moving ' + line[0] + ' for conversion')
+                shutil.move(directory + '/' + line[0], org)
+                logging.info('Converting ' + line[0])
+                subprocess.run(
+                    'ffmpeg -sn -i ' + '"' + line[0] + '"' +
+                    ' -cv libx265 -crf 28 -c:a aac -b:a 128k ' +
+                    conv + '"' + line[0] + '"', shell=True
+                )
+            else:
+                logging.info('Moving ' + line[1] + ' for conversion')
+                shutil.move(directory + '/' + line[0] + '/' + line[1], org)
+                logging.info('Converting ' + line[1])
+                subprocess.run(
+                    'ffmpeg -sn -i ' + '"' + line[1] + '"' +
+                    ' -c:v libx265 -crf 28 -c:a aac -b:a  128k ' +
+                    conv + '"' + line[1] + '"', shell=True
+                )
 
 
 def move_conv():
     os.chdir(conv)
-    with open(found, 'r+') as file:
+    with open(found, 'rt') as file:
         for line in file:
-            line = line.rstrip()
-            for part in line.split('/'):
-                folder = line[:9]
-                file = line[9:]
-            logging.info('Moving' + str(file) +
-                         "back to it's original location")
-            shutil.move(str(file), directory + '/' + folder + str(file))
+            line = line.rstrip().split('/')
+            if line[1] is None:
+                logging.info('Moving ' + line[0] +
+                             " back to it's orignial location")
+                shutil.move(line[0], directory + '/' + line[0])
+            else:
+                logging.info('Moving' + line[1] +
+                             " back to it's original location")
+                shutil.move(line[1], directory + '/' + line[0] + '/' + line[1])
 
 
 def clean_up():
