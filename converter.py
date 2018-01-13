@@ -168,7 +168,7 @@ def main(argv=None):
             path_exists()
             find_files()
             convert()
-            #clean_up()
+            clean_up()
 
 
 if __name__ == '__main__':
