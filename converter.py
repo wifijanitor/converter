@@ -126,17 +126,18 @@ def convert():
     print(os.getcwd())
     logging.info("Starting to convert ")
     with open(found, 'rt') as shows:
-        for line in shows:
-            line = line.rstrip().split('/')
+        for row in shows:
+            line = row.rstrip().split('/')
             print('This is the file we are moving')
-            print(line)
-            if len(line) < 1:
+            print(row)
+            if len(line[1]) >= 1:
+                print('folder and file')
                 logging.info('Moving ' + line[1] + ' for conversion')
                 shutil.move(directory + '/' + line[0] + '/' + line[1], org)
                 logging.info('Converting ' + line[1])
                 subprocess.run(
                     'ffmpeg -sn -i ' + '"' + line[1] + '"' +
-                    ' -cv libx265 -crf 28 -c:a aac -b:a 128k ' +
+                    ' -c:v libx265 -crf 28 -c:a aac -b:a 128k ' +
                     conv + '"' + line[1] + '"' + ' -hide_banner', shell=True
                 )
             else:
@@ -153,28 +154,28 @@ def convert():
 def move_conv():
     os.chdir(conv)
     with open(found, 'rt') as file:
-        for line in file:
-            line = line.rstrip().split('/')
-            if line[1] is None:
-                logging.info('Moving ' + line[0] +
+        for row in file:
+            line = row.rstrip().split('/')
+            if line[1] >= 1:
+                logging.info('Moving ' + line[1] +
                              " back to it's orignial location")
-                shutil.move(line[0], directory + '/' + line[0])
-            else:
-                logging.info('Moving' + line[1] +
-                             " back to it's original location")
                 shutil.move(line[1], directory + '/' + line[0] + '/' + line[1])
+            else:
+                logging.info('Moving' + line[0] +
+                             " back to it's original location")
+                shutil.move(line[0], directory + '/' + line[0])
 
 
 def clean_up():
     os.chdir(org)
     logging.info("Cleaning up")
     with open(found, 'rt') as shows:
-        for line in shows:
-            line = line.rstrip().split('/')
-            if line[1] is None:
-                os.remove(line[0])
-            else:
+        for row in shows:
+            line = row.rstrip().split('/')
+            if line[1] >= 1:
                 os.remove(line[1])
+            else:
+                os.remove(line[0])
 
 
 def main(argv=None):
