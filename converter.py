@@ -109,7 +109,6 @@ def path_exists():
     except Exception as esc:
         print('Error {}'.format(str(esc)))
         return
-    return 1
 
 
 def find_files():
@@ -130,8 +129,8 @@ def convert():
             line = row.rstrip().split('/')
             print('This is the file we are moving')
             print(row)
-            if len(line[1]) >= 1:
-                print('folder and file')
+            if 1 in line:
+                print('Folder and file')
                 logging.info('Moving ' + line[1] + ' for conversion')
                 shutil.move(directory + '/' + line[0] + '/' + line[1], org)
                 logging.info('Converting ' + line[1])
@@ -141,6 +140,7 @@ def convert():
                     conv + '"' + line[1] + '"' + ' -hide_banner', shell=True
                 )
             else:
+                print('File')
                 logging.info('Moving ' + line[0] + ' for conversion')
                 shutil.move(directory + '/' + line[0], org)
                 logging.info('Converting ' + line[0])
@@ -156,7 +156,7 @@ def move_conv():
     with open(found, 'rt') as file:
         for row in file:
             line = row.rstrip().split('/')
-            if line[1] >= 1:
+            if 1 in line:
                 logging.info('Moving ' + line[1] +
                              " back to it's orignial location")
                 shutil.move(line[1], directory + '/' + line[0] + '/' + line[1])
@@ -172,7 +172,7 @@ def clean_up():
     with open(found, 'rt') as shows:
         for row in shows:
             line = row.rstrip().split('/')
-            if line[1] >= 1:
+            if 1 in line:
                 os.remove(line[1])
             else:
                 os.remove(line[0])
@@ -191,7 +191,8 @@ def main(argv=None):
             path_exists()
             find_files()
             convert()
-            # clean_up()
+            move_conv()
+            clean_up()
 
 
 if __name__ == '__main__':
