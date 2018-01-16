@@ -129,17 +129,19 @@ def convert():
             line = row.rstrip().split('/')
             print('This is the file we are moving')
             print(row)
-            if 1 in line:
-                print('Folder and file')
-                logging.info('Moving ' + line[1] + ' for conversion')
-                shutil.move(directory + '/' + line[0] + '/' + line[1], org)
-                logging.info('Converting ' + line[1])
-                subprocess.run(
-                    'ffmpeg -sn -i ' + '"' + line[1] + '"' +
-                    ' -c:v libx265 -crf 28 -c:a aac -b:a 128k ' +
-                    conv + '"' + line[1] + '"' + ' -hide_banner', shell=True
-                )
-            else:
+            try:
+                if len(line[1]) >= 1:
+                    print('Folder and file')
+                    logging.info('Moving ' + line[1] + ' for conversion')
+                    shutil.move(directory + '/' + line[0] + '/' + line[1], org)
+                    logging.info('Converting ' + line[1])
+                    subprocess.run(
+                        'ffmpeg -sn -i ' + '"' + line[1] + '"' +
+                        ' -c:v libx265 -crf 28 -c:a aac -b:a 128k ' +
+                        conv + '"' + line[1] + '"' + ' -hide_banner', shell=True
+                    )
+                logging.info('Done converting' + line[1])
+            except IndexError:
                 print('File')
                 logging.info('Moving ' + line[0] + ' for conversion')
                 shutil.move(directory + '/' + line[0], org)
@@ -149,6 +151,7 @@ def convert():
                     ' -c:v libx265 -crf 28 -c:a aac -b:a  128k ' +
                     conv + '"' + line[0] + '"' + ' -hide_banner', shell=True
                 )
+                logging.info('Done converting' + line[0])
 
 
 def move_conv():
@@ -156,11 +159,13 @@ def move_conv():
     with open(found, 'rt') as file:
         for row in file:
             line = row.rstrip().split('/')
-            if 1 in line:
-                logging.info('Moving ' + line[1] +
-                             " back to it's orignial location")
-                shutil.move(line[1], directory + '/' + line[0] + '/' + line[1])
-            else:
+            try:
+                if len(line[1]) >= 1:
+                    logging.info('Moving ' + line[1] +
+                                 " back to it's orignial location")
+                    shutil.move(line[1], directory + '/' +
+                                line[0] + '/' + line[1])
+            except IndexError:
                 logging.info('Moving' + line[0] +
                              " back to it's original location")
                 shutil.move(line[0], directory + '/' + line[0])
@@ -172,10 +177,11 @@ def clean_up():
     with open(found, 'rt') as shows:
         for row in shows:
             line = row.rstrip().split('/')
-            if 1 in line:
-                os.remove(line[1])
-            else:
-                os.remove(line[0])
+            try:
+                if len(line[1]) >= 1:
+                    os.remove(line[1])
+            except IndexError:
+                    os.remove(line[0])
 
 
 def main(argv=None):
