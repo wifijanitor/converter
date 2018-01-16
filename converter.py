@@ -121,17 +121,13 @@ def find_files():
 
 def convert():
     os.chdir(org)
-    print('This is where we are')
-    print(os.getcwd())
     logging.info("Starting to convert ")
     with open(found, 'rt') as shows:
         for row in shows:
             line = row.rstrip().split('/')
             print('This is the file we are moving')
-            print(row)
             try:
                 if len(line[1]) >= 1:
-                    print('Folder and file')
                     logging.info('Moving ' + line[1] + ' for conversion')
                     shutil.move(directory + '/' + line[0] + '/' + line[1], org)
                     logging.info('Converting ' + line[1])
@@ -142,7 +138,6 @@ def convert():
                     )
                 logging.info('Done converting' + line[1])
             except IndexError:
-                print('File')
                 logging.info('Moving ' + line[0] + ' for conversion')
                 shutil.move(directory + '/' + line[0], org)
                 logging.info('Converting ' + line[0])
