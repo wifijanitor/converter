@@ -18,11 +18,11 @@ Usage:
   Input options:
 
     -d/--directory      Base seach location
-    -s/--size           File size you want to search for
+    -s/--size           File size you want to search for G assumed
     -h/--help           Display this help and exit
     -v/--ver/--version  Dislpays script verision
 
-  converter.py -d /Volumes/TV Shows/ -s 1.6G
+  converter.py -d /Volumes/TV Shows/ -s 11
 '''
 
 import os
@@ -42,11 +42,12 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-version = 1.0
+version = 2.0
 ver = sys.version_info[0] > 2
 
 directory = None
 size = None
+bsize = None
 
 org = expanduser('~/Converter/original/')
 conv = expanduser('~/Converter/modified/')
@@ -84,7 +85,7 @@ def parseOptions(argv):
                 elif o in ('-d', '--directory'):
                     directory = str(a)
                 elif o in ('-s', '--size'):
-                    size = a
+                    size = int(a) << 30
                 else:
                     return usage('Error: Unknown option, exiting...')
             if not directory:
@@ -116,7 +117,11 @@ def find_files():
     with open(found, 'wt') as file:
         logging.info('Finding files')
         for f in glob.iglob('**/*.m*', recursive=True):
-            file.write(f + '\n')
+            file_size = os.path.getsize(f)
+            if file_size >= size:
+                file.write(f + '\n')
+            else:
+                continue
 
 
 def convert():
@@ -126,27 +131,28 @@ def convert():
         for row in shows:
             line = row.rstrip().split('/')
             print('This is the file we are moving')
-            try:
-                if len(line[1]) >= 1:
-                    logging.info('Moving ' + line[1] + ' for conversion')
-                    shutil.move(directory + '/' + line[0] + '/' + line[1], org)
-                    logging.info('Converting ' + line[1])
-                    subprocess.run(
-                        'ffmpeg -sn -i ' + '"' + line[1] + '"' +
-                        ' -c:v libx265 -crf 28 -c:a aac -b:a 128k ' +
-                        conv + '"' + line[1] + '"' + ' -hide_banner', shell=True
-                    )
-                logging.info('Done converting' + line[1])
-            except IndexError:
-                logging.info('Moving ' + line[0] + ' for conversion')
-                shutil.move(directory + '/' + line[0], org)
-                logging.info('Converting ' + line[0])
+            if 'mkv' in line[0] or 'mp4' in line[0]:
+                file = line[0]
+                logging.info('Moving ' + file + ' for conversion')
+                shutil.move(directory + '/' + file, org)
+                logging.info('Converting ' + file)
                 subprocess.run(
-                    'ffmpeg -sn -i ' + '"' + line[0] + '"' +
+                    'ffmpeg -sn -i ' + '"' + file + '"' +
                     ' -c:v libx265 -crf 28 -c:a aac -b:a  128k ' +
-                    conv + '"' + line[0] + '"' + ' -hide_banner', shell=True
+                    conv + '"' + file + '"' + ' -hide_banner', shell=True
                 )
                 logging.info('Done converting' + line[0])
+            elif 'mkv' in line[1] or 'mp4' in line[1]:
+                file = line[1]
+                folder = line[0]
+                logging.info('Moving ' + file + ' for conversion')
+                shutil.move(directory + '/' + folder + '/' + file, org)
+                logging.info('Converting ' + file)
+                subprocess.run(
+                    'ffmpeg -sn -i ' + '"' + file + '"' +
+                    ' -c:v libx265 -crf 28 -c:a aac -b:a 128k ' +
+                    conv + '"' + file + '"' + ' -hide_banner', shell=True
+                )
 
 
 def move_conv():
@@ -154,16 +160,31 @@ def move_conv():
     with open(found, 'rt') as file:
         for row in file:
             line = row.rstrip().split('/')
-            try:
-                if len(line[1]) >= 1:
-                    logging.info('Moving ' + line[1] +
-                                 " back to it's orignial location")
-                    shutil.move(line[1], directory + '/' +
-                                line[0] + '/' + line[1])
-            except IndexError:
-                logging.info('Moving' + line[0] +
+            if 'mkv' in line[0]:
+                file = line[0]
+                logging.info('Moving ' + file +
                              " back to it's original location")
-                shutil.move(line[0], directory + '/' + line[0])
+                shutil.move(file, directory + '/' + file)
+            elif 'mp4' in line[0]:
+                file = line[0]
+                logging.info('Moving ' + file +
+                             " back to it's original location")
+                shutil.move(file, directory + '/' +
+                            os.path.splitext(file)[0] + '.mkv')
+            elif 'mkv' in line[1]:
+                file = line[1]
+                folder = line[0]
+                logging.info('Moving ' + file +
+                             " back to it's orignial location")
+                shutil.move(file, directory + '/' +
+                            folder + '/' + file)
+            elif 'mp4' in line[1]:
+                file = line[1]
+                folder = line[0]
+                logging.info('Moving ' + file +
+                             " back to it's orignial location")
+                shutil.move(file, directory + '/' +
+                            folder + '/' + os.path.splitext(file)[0] + '.mkv')
 
 
 def clean_up():
@@ -171,12 +192,7 @@ def clean_up():
     logging.info("Cleaning up")
     with open(found, 'rt') as shows:
         for row in shows:
-            line = row.rstrip().split('/')
-            try:
-                if len(line[1]) >= 1:
-                    os.remove(line[1])
-            except IndexError:
-                    os.remove(line[0])
+            os.remove(row)
 
 
 def main(argv=None):
