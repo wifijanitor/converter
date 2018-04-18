@@ -192,7 +192,8 @@ def clean_up():
     logging.info("Cleaning up")
     with open(found, 'rt') as shows:
         for row in shows:
-            os.remove(row)
+            line = row.rstrip()
+            os.remove(line)
 
 
 def main(argv=None):
