@@ -206,7 +206,7 @@ def move_conv():
 
 
 def clean_up():
-    ''' 
+    '''
     cleans out the temporary storage directory
     '''
     os.chdir(org)
