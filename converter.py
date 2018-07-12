@@ -5,6 +5,9 @@ Usage:
   This script will attempt to find files based on
   user determined location and size.
 
+  Currently this only works for MP4 and MKV extensions, I'll add in
+  AVI functionality at some point.
+
   If the files are on a remote drive, it will copy the files
   to a local folder and use ffmpeg to transcode and make the files smaller.
 
@@ -100,6 +103,10 @@ def parseOptions(argv):
 
 
 def path_exists():
+    '''
+    checks if the path to the folder structure exists.
+    if not, it will create it
+    '''
     try:
         if not os.path.isdir(org):
             logging.info('creating' + str(org))
@@ -113,6 +120,10 @@ def path_exists():
 
 
 def find_files():
+    '''
+    attempts to find files of the specified size in the specified directory
+    writes names to a text file for future reference
+    '''
     os.chdir(directory)
     with open(found, 'wt') as file:
         logging.info('Finding files')
@@ -125,6 +136,9 @@ def find_files():
 
 
 def convert():
+    '''
+    converts files to X265 video and AAC audio codecs
+    '''
     os.chdir(org)
     logging.info("Starting to convert ")
     with open(found, 'rt') as shows:
@@ -156,6 +170,10 @@ def convert():
 
 
 def move_conv():
+    '''
+    moves newly converted media back to it's original location
+    changes file extension from mp4 to mkv.
+    '''
     os.chdir(conv)
     with open(found, 'rt') as file:
         for row in file:
@@ -188,6 +206,9 @@ def move_conv():
 
 
 def clean_up():
+    ''' 
+    cleans out the temporary storage directory
+    '''
     os.chdir(org)
     logging.info("Cleaning up")
     with open(found, 'rt') as shows:
