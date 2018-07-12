@@ -15,3 +15,6 @@ This script *should* handle a file directly in the 'base' directory
 or one folder level down from base
 
 if you do not want to remove subtitles, be sure to remove the -sn from both ffmpeg lines
+
+No kittens were harmed in the making of this script
+  but my liver may be a whiner.
