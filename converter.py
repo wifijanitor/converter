@@ -152,7 +152,7 @@ def convert():
                 logging.info('Converting ' + file)
                 subprocess.run(
                     'ffmpeg -sn -i ' + '"' + file + '"' +
-                    ' -c:v libx265 -crf 28 -c:a aac -b:a  128k ' +
+                    ' -c:v libx265 -crf 28 -c:a libfdk_aac -b:a  128k ' +
                     conv + '"' + file + '"' + ' -hide_banner', shell=True
                 )
                 logging.info('Done converting' + line[0])
