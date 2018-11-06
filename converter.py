@@ -151,7 +151,7 @@ def move_conv():
             else:
                 movie, ext = file[1].split('.')
                 logging.info(f"Moving {movie} back to it's original location")
-                shutil.move(movie + '.mkv', directory + '/' + file[1])
+                shutil.move(movie + '.mkv', directory + '/' + file[0])
 
 
 def clean_up():
