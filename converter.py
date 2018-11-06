@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 
 directory = None
 size = None
+vcodec = 'libx265'
+acodec = 'libfdk_aac'
+crf = '28'
+bitrate = '128k'
+extension = ['mkv', 'mp4', 'm4v', 'avi', 'wmv']
 
 org = expanduser('~/Converter/original/')
 conv = expanduser('~/Converter/modified/')
@@ -31,7 +36,10 @@ def parseOptions():
         prog='Converter',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description='''
-            Convert files to MKV using X265 and AAC encodings
+            Convert files to MKV using X265 and AAC encodings, by default.
+            You can use different codecs by changing the vcodec and acodec
+            variables.
+            "-s" matches file size greater than input, in Gigabit.
   ''')
     parser.add_argument('-d', '--directory',
                         metavar='Directory',
@@ -39,14 +47,14 @@ def parseOptions():
                         required=True)
     parser.add_argument('-s', '--size',
                         metavar='Size',
-                        help="file size you want to search for",
+                        help="file size you want to search for in Gigabit",
                         type=int, required=True)
     parser.add_argument('-v', '--version',
                         action='version',
-                        version='%(prog)s 3.0')
+                        version='%(prog)s 3.1')
     args = parser.parse_args()
     directory = str(args.directory)
-    size = args.size
+    size = ((args.size) * 1024**3)
 
 
 def path_exists():
@@ -74,7 +82,7 @@ def find_files():
     os.chdir(directory)
     with open(found, 'wt') as file:
         logging.info('Finding files')
-        for f in glob.iglob('**/*.**', recursive=True):
+        for f in glob.iglob('**/*.[a,m,w]*', recursive=True):
             file_size = os.path.getsize(f)
             if file_size >= size:
                 file.write(f + '\n')
@@ -90,97 +98,38 @@ def convert_main():
     logging.info("Starting to convert ")
     with open(found, 'rt') as shows:
         for row in shows:
-            movie, ext = row.rstrip().split('.')
-            if 'mkv' in ext:
-                convert_mkv(row)
-            elif 'mp4' in ext:
-                convert_mp4(row)
-            elif 'avi' in ext:
-                convert_avi(row)
-
-
-def convert_mkv(row):
-    line = row.rstrip().split('/')
-    if 'mkv' in line[0]:
-        file = line[0]
-        print(f'Converting {file}')
-        logging.info(f'Moving {file} for conversion')
-        shutil.move(directory + '/' + file, org)
-        logging.info(f'Converting {file}')
-        subprocess.run(
-            'ffmpeg -sn -i ' + '"' + file + '"' +
-            ' -c:v libx265 -crf 28 -c:a libfdk_aac -b:a  128k ' +
-            conv + '"' + file + '"' + ' -hide_banner', shell=True
-        )
-        logging.info(f'Done converting {file}')
-    elif 'mkv' in line[1]:
-        file = line[1]
-        folder = line[0]
-        logging.info(f'Moving {file} for conversion')
-        shutil.move(directory + '/' + folder + '/' + file, org)
-        logging.info(f'Converting {file}')
-        subprocess.run(
-            'ffmpeg -sn -i ' + '"' + file + '"' +
-            ' -c:v libx265 -crf 28 -c:a aac -b:a 128k ' +
-            conv + '"' + file + '"' + ' -hide_banner', shell=True
-        )
-    return
-
-
-def convert_mp4(row):
-    line = row.rstrip().split('/')
-    if 'mp4' in line[0]:
-        old, ext = line[0].split('.')
-        file = line[0]
-        logging.info(f'Moving {file} for conversion')
-        shutil.move(directory + '/' + file, org)
-        logging.info(f'Converting {file}')
-        subprocess.run(
-            'ffmpeg -sn -i ' + '"' + file + '"' +
-            ' -c:v libx265 -crf 28 -c:a libfdk_aac -b:a  128k ' +
-            conv + '"' + old + '.mkv' + '"' + ' -hide_banner',
-            shell=True)
-        logging.info(f'Done converting {file}')
-    elif 'mp4' in line[1]:
-        old, ext = line[1].split('.')
-        file = line[1]
-        folder = line[0]
-        shutil.move(directory + '/' + folder + '/' + file, org)
-        logging.info(f'Converting {file}')
-        subprocess.run(
-            'ffmpeg -sn -i ' + '"' + file + '"' +
-            ' -c:v libx265 -crf 28 -c:a libfdk_aac -b:a  128k ' +
-            conv + '"' + old + '.mkv' + '"' + ' -hide_banner',
-            shell=True)
-    return
-
-
-def convert_avi(row):
-    line = row.rstrip().split('/')
-    if 'avi' in line[0]:
-        old, ext = line[0].split('.')
-        file = line[0]
-        logging.info(f'Moving {file} for conversion')
-        shutil.move(directory + '/' + file, org)
-        logging.info(f'Converting {file}')
-        subprocess.run(
-            'ffmpeg -sn -i ' + '"' + file + '"' +
-            ' -c:v libx265 -crf 28 -c:a libfdk_aac -b:a  128k ' +
-            conv + '"' + old + '.mkv' + '"' + ' -hide_banner',
-            shell=True)
-        logging.info(f'Done converting {file}')
-    elif 'avi' in line[1]:
-        old, ext = line[1].split('.')
-        file = line[1]
-        folder = line[0]
-        shutil.move(directory + '/' + folder + '/' + file, org)
-        logging.info(f'Converting {file}')
-        subprocess.run(
-            'ffmpeg -sn -i ' + '"' + file + '"' +
-            ' -c:v libx265 -crf 28 -c:a libfdk_aac -b:a  128k ' +
-            conv + '"' + old + '.mkv' + '"' + ' -hide_banner',
-            shell=True)
-    return
+            file = row.rstrip().split('/')
+            if len(file) == 1:
+                print(file[0])
+                movie, ext = file[0].split('.')
+                if any(ext for ext in extension):
+                    logging.info(f'Moving {movie} for conversion')
+                    shutil.move(directory + '/' + file[0], org)
+                    logging.info(f'Converting {movie}')
+                    subprocess.run(
+                        'ffmpeg -sn -i ' + '"' + file[0] + '"' +
+                        ' -c:v ' + vcodec +
+                        ' -crf ' + crf +
+                        ' -c:a ' + acodec +
+                        ' -b:a ' + bitrate + ' ' +
+                        conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
+                        shell=True)
+                    logging.info(f'Done converting {movie}')
+            else:
+                print(file[0])
+                print(file[1])
+                movie, ext = file[1].split('.')
+                shutil.move(directory + '/' + file[0] + '/' + file[1], org)
+                logging.info(f'Converting {movie}')
+                subprocess.run(
+                    'ffmpeg -sn -i ' + '"' + file[1] + '"' +
+                    ' -c:v ' + vcodec +
+                    ' -crf ' + crf +
+                    ' -c:a ' + acodec +
+                    ' -b:a ' + bitrate + ' ' +
+                    conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
+                    shell=True)
+                logging.info(f'Done converting {movie}')
 
 
 def move_conv():
@@ -189,44 +138,20 @@ def move_conv():
     changes file extension from mp4 to mkv.
     '''
     os.chdir(conv)
-    with open(found, 'rt') as file:
-        for row in file:
-            line = row.rstrip().split('/')
-            if 'mkv' in line[0]:
-                file = line[0]
-                logging.info(f"Moving {file} back to it's original location")
-                shutil.move(file, directory)
-            elif 'mp4' in line[0]:
-                old, ext = line[0].split('.')
-                file = line[0]
-                logging.info(f"Moving {file} back to it's original location")
-                shutil.move(old + ".mkv", directory)
-            elif 'avi' in line[0]:
-                old, ext = line[0].split('.')
-                file = line[0]
-                logging.info(f"Moving {file} back to it's original location")
-                shutil.move(old + ".mkv", directory)
-            elif 'mkv' in line[1]:
-                file = line[1]
-                folder = line[0]
-                logging.info('Moving ' + file +
-                             " back to it's orignial location")
-                shutil.move(file, directory + '/' +
-                            folder)
-            elif 'mp4' in line[1]:
-                old, ext = line[1].split('.')
-                file = line[1]
-                folder = line[0]
-                logging.info(f"Moving {file} back to it's orignial location")
-                shutil.move(old + ".mkv", directory + '/' +
-                            folder)
-            elif 'avi' in line[1]:
-                old, ext = line[1].split('.')
-                file = line[1]
-                folder = line[0]
-                logging.info(f"Moving {file} back to it's orignial location")
-                shutil.move(old + ".mkv", directory + '/' +
-                            folder)
+    with open(found, 'rt') as shows:
+        for row in shows:
+            file = row.rstrip().split('/')
+            if len(file) == 1:
+                print(file[0])
+                movie, ext = file[0].split('.')
+                if any(ext for ext in extension):
+                    logging.info(
+                        f"Moving {movie} back to it's original location")
+                    shutil.move(movie + '.mkv', directory)
+            else:
+                movie, ext = file[1].split('.')
+                logging.info(f"Moving {movie} back to it's original location")
+                shutil.move(movie + '.mkv', directory + '/' + file[1])
 
 
 def clean_up():
