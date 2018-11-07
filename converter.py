@@ -100,7 +100,6 @@ def convert_main():
         for row in shows:
             file = row.rstrip().split('/')
             if len(file) == 1:
-                print(file[0])
                 movie, ext = file[0].split('.')
                 if any(ext for ext in extension):
                     logging.info(f'Moving {movie} for conversion')
@@ -116,8 +115,6 @@ def convert_main():
                         shell=True)
                     logging.info(f'Done converting {movie}')
             else:
-                print(file[0])
-                print(file[1])
                 movie, ext = file[1].split('.')
                 shutil.move(directory + '/' + file[0] + '/' + file[1], org)
                 logging.info(f'Converting {movie}')
@@ -142,7 +139,6 @@ def move_conv():
         for row in shows:
             file = row.rstrip().split('/')
             if len(file) == 1:
-                print(file[0])
                 movie, ext = file[0].split('.')
                 if any(ext for ext in extension):
                     logging.info(
