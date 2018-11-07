@@ -51,7 +51,7 @@ def parseOptions():
                         type=int, required=True)
     parser.add_argument('-v', '--version',
                         action='version',
-                        version='%(prog)s 3.1')
+                        version='%(prog)s 3.2')
     args = parser.parse_args()
     directory = str(args.directory)
     size = ((args.size) * 1024**3)
