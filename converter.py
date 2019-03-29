@@ -6,6 +6,7 @@ import glob
 import subprocess
 import shutil
 import logging
+import sys
 from os.path import expanduser
 
 
@@ -51,7 +52,10 @@ def parseOptions():
                         type=int, required=True)
     parser.add_argument('-v', '--version',
                         action='version',
-                        version='%(prog)s 3.2')
+                        version='%(prog)s 4.0')
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     args = parser.parse_args()
     directory = str(args.directory)
     size = ((args.size) * 1024**3)
@@ -91,63 +95,64 @@ def find_files():
 
 
 def convert_main():
+    logging.info("Starting conversion process")
+    with open(found, 'rt') as shows:
+        for row in shows:
+            file = row.rstrip().split('/')
+            if len(file) == 1:
+                name = file[0]
+                movie, ext = file[0].split('.')
+                data = {'name': name, 'movie': movie}
+                logging.info(f'Moving {movie} for conversion')
+                shutil.move(directory + '/' + name, org)
+                convert_file(**data)
+                move_conv(**data)
+            else:
+                folder = file[0]
+                name = file[1]
+                movie, ext = file[1].split('.')
+                data = {'folder': folder, 'name': name, 'movie': movie}
+                logging.info(f'Moving {movie} for conversion')
+                shutil.move(directory + '/' + folder + '/' + name, org)
+                convert_file(**data)
+                move_conv(**data)
+
+
+def convert_file(**kwargs):
+    folder = kwargs.get('folder', '')
+    name = kwargs.get('name')
+    movie = kwargs.get('movie')
     '''
     converts files to X265 video and AAC audio codecs
     '''
     os.chdir(org)
-    logging.info("Starting to convert ")
-    with open(found, 'rt') as shows:
-        for row in shows:
-            file = row.rstrip().split('/')
-            if len(file) == 1:
-                movie, ext = file[0].split('.')
-                if any(ext for ext in extension):
-                    logging.info(f'Moving {movie} for conversion')
-                    shutil.move(directory + '/' + file[0], org)
-                    logging.info(f'Converting {movie}')
-                    subprocess.run(
-                        'ffmpeg -sn -i ' + '"' + file[0] + '"' +
-                        ' -c:v ' + vcodec +
-                        ' -crf ' + crf +
-                        ' -c:a ' + acodec +
-                        ' -b:a ' + bitrate + ' ' +
-                        conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
-                        shell=True)
-                    logging.info(f'Done converting {movie}')
-            else:
-                movie, ext = file[1].split('.')
-                shutil.move(directory + '/' + file[0] + '/' + file[1], org)
-                logging.info(f'Converting {movie}')
-                subprocess.run(
-                    'ffmpeg -sn -i ' + '"' + file[1] + '"' +
-                    ' -c:v ' + vcodec +
-                    ' -crf ' + crf +
-                    ' -c:a ' + acodec +
-                    ' -b:a ' + bitrate + ' ' +
-                    conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
-                    shell=True)
-                logging.info(f'Done converting {movie}')
+    logging.info(f'Converting {movie}')
+    subprocess.run(
+        'ffmpeg -sn -i ' + '"' + name + '"' +
+        ' -c:v ' + vcodec +
+        ' -crf ' + crf +
+        ' -c:a ' + acodec +
+        ' -b:a ' + bitrate + ' ' +
+        conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
+        shell=True)
+    logging.info(f'Done converting {movie}')
 
 
-def move_conv():
+def move_conv(**kwargs):
+    folder = kwargs.get('folder', '')
+    name = kwargs.get('name')
+    movie = kwargs.get('movie')
     '''
     moves newly converted media back to it's original location
-    changes file extension from mp4 to mkv.
+    changes file extension from mp4/avi etc to mkv.
     '''
     os.chdir(conv)
-    with open(found, 'rt') as shows:
-        for row in shows:
-            file = row.rstrip().split('/')
-            if len(file) == 1:
-                movie, ext = file[0].split('.')
-                if any(ext for ext in extension):
-                    logging.info(
-                        f"Moving {movie} back to it's original location")
-                    shutil.move(movie + '.mkv', directory)
-            else:
-                movie, ext = file[1].split('.')
-                logging.info(f"Moving {movie} back to it's original location")
-                shutil.move(movie + '.mkv', directory + '/' + file[0])
+    if len(folder) >= 1:
+        logging.info(f"Moving {movie} back to it's original location")
+        shutil.move(movie + '.mkv', directory + '/' + folder)
+    else:
+        logging.info(f"Moving {movie} back to it's original location")
+        shutil.move(movie + '.mkv', directory)
 
 
 def clean_up():
@@ -167,7 +172,6 @@ def main():
     path_exists()
     find_files()
     convert_main()
-    move_conv()
     clean_up()
 
 
