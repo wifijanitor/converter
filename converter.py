@@ -102,8 +102,6 @@ def convert_main():
             if len(file) == 1:
                 name = file[0]
                 movie = name[:-4]
-                print(name)
-                print(movie)
                 data = {'name': name, 'movie': movie}
                 logging.info(f'Moving {movie} for conversion')
                 shutil.move(directory + '/' + name, org)
@@ -113,8 +111,6 @@ def convert_main():
                 folder = file[0]
                 name = file[1]
                 movie = name[:-4]
-                print(name)
-                print(movie)
                 data = {'folder': folder, 'name': name, 'movie': movie}
                 logging.info(f'Moving {movie} for conversion')
                 shutil.move(directory + '/' + folder + '/' + name, org)
