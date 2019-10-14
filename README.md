@@ -1,6 +1,7 @@
 # Converter
 Script to find video files of a specified size, or greater, and run ffmpeg to transcode them.
-Currenlyt keeps english language subtitles you can change this using the ISO 639-2 code
+
+Currently keeps english language subtitles you can change this using the ISO 639-2 code
 
 If you want to use other codecs, you can modify the vcodec and acodec variables with which ever codecs you have installed that work with ffmpeg
 
