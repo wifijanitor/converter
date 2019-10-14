@@ -12,7 +12,7 @@ or can be installed via homebrew :
 brew install ffmpeg
 ```
 
-##Options
+## Options
 
 Variable | Default | Description
 -------------|-------------|------------------
