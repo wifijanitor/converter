@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 directory = None
 size = None
+# Changeable variables
 vcodec = 'libx265'
 acodec = 'aac'
 crf = '28'
@@ -129,7 +130,7 @@ def convert_file(**kwargs):
     os.chdir(org)
     logging.info(f'Converting {movie}')
     subprocess.run(
-        'ffmpeg -sn -i ' + '"' + name + '"' +
+        'ffmpeg -i ' + '"' + name + '"' +
         ' -c:v ' + vcodec +
         ' -crf ' + crf +
         ' -c:a ' + acodec +
