@@ -23,6 +23,7 @@ vcodec = 'libx265'
 acodec = 'aac'
 crf = '28'
 bitrate = '128k'
+subs = 'eng'
 extension = ['mkv', 'mp4', 'm4v', 'avi', 'wmv']
 
 org = expanduser('~/Converter/original/')
@@ -123,7 +124,7 @@ def convert_file(**kwargs):
     name = kwargs.get('name')
     movie = kwargs.get('movie')
     '''
-    converts files to X265 video and AAC audio codecs
+    converts files to selected video and audio codecs
     '''
     os.chdir(org)
     logging.info(f'Converting {movie}')
@@ -133,6 +134,7 @@ def convert_file(**kwargs):
         ' -crf ' + crf +
         ' -c:a ' + acodec +
         ' -b:a ' + bitrate + ' ' +
+        '-metadata:s:s:0 language:' + subs +
         conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
         shell=True)
     logging.info(f'Done converting {movie}')
