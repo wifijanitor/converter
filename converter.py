@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 directory = None
 size = None
 vcodec = 'libx265'
-acodec = 'libfdk_aac'
+acodec = 'aac'
 crf = '28'
 bitrate = '128k'
 extension = ['mkv', 'mp4', 'm4v', 'avi', 'wmv']
@@ -95,7 +95,6 @@ def find_files():
 
 
 def convert_main():
-    logging.info("Starting conversion process")
     with open(found, 'rt') as shows:
         for row in shows:
             file = row.rstrip().split('/')
