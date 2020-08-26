@@ -22,6 +22,7 @@ size = None
 vcodec = 'libx265'
 acodec = 'aac'
 crf = '28'
+lang = 'eng'
 bitrate = '128k'
 extension = ['mkv', 'mp4', 'm4v', 'avi', 'wmv']
 
@@ -131,6 +132,7 @@ def convert_file(**kwargs):
         ' -c:v ' + vcodec +
         ' -crf ' + crf +
         ' -c:a ' + acodec +
+        ' -map 0:m:language' + lang +
         ' -b:a ' + bitrate + ' ' +
         conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
         shell=True)
