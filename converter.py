@@ -132,7 +132,7 @@ def convert_file(**kwargs):
         ' -c:v ' + vcodec +
         ' -crf ' + crf +
         ' -c:a ' + acodec +
-        ' -map 0:m:language' + lang +
+        ' -map 0:m:language:' + lang +
         ' -b:a ' + bitrate + ' ' +
         conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
         shell=True)
