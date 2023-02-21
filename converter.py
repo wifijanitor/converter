@@ -127,13 +127,13 @@ def convert_file(**kwargs):
     os.chdir(org)
     logging.info(f'Converting {movie}')
     subprocess.run(
-        'ffmpeg -sn -i ' + '"' + name + '"' +
-        ' -c:v ' + vcodec +
-        ' -crf ' + crf +
-        ' -c:a ' + acodec +
-        ' -map 0:m:language:' + lang +
-        ' -b:a ' + bitrate + ' ' +
-        conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
+        'ffmpeg -i ' + '"' + name + '"'
+        + ' -c:v ' + vcodec
+        + ' -crf ' + crf
+        + ' -c:a ' + acodec
+        + ' -map 0:m:language:' + lang
+        + ' -b:a ' + bitrate + ' '
+        + conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
         shell=True)
     logging.info(f'Done converting {movie}')
 
