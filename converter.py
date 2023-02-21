@@ -128,6 +128,7 @@ def convert_file(**kwargs):
     logging.info(f'Converting {movie}')
     subprocess.run(
         'ffmpeg -i ' + '"' + name + '"'
+        + '-map 0:v:0'
         + ' -c:v ' + vcodec
         + ' -crf ' + crf
         + ' -c:a ' + acodec
