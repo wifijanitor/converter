@@ -24,7 +24,6 @@ acodec = 'aac'
 crf = '28'
 lang = 'eng'
 bitrate = '128k'
-extension = ['mkv', 'mp4', 'm4v', 'avi', 'wmv']
 
 org = expanduser('~/Converter/original/')
 conv = expanduser('~/Converter/modified/')
@@ -53,7 +52,7 @@ def parseOptions():
                         type=int, required=True)
     parser.add_argument('-v', '--version',
                         action='version',
-                        version='%(prog)s 4.0')
+                        version='%(prog)s 4.1')
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -87,7 +86,7 @@ def find_files():
     os.chdir(directory)
     with open(found, 'wt') as file:
         logging.info('Finding files')
-        for f in glob.iglob('**/*.[a,m,w]*', recursive=True):
+        for f in glob.iglob('**/*.[a,f,m,w]*', recursive=True):
             file_size = os.path.getsize(f)
             if file_size >= size:
                 file.write(f + '\n')
