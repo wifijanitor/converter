@@ -13,7 +13,7 @@ current hombrew (4.x) includes x265
 
 transcode settings are:
 ```
-ffmpeg -i <file name> -c:v vcodec -crf crf -c:a acodec -b:a  bitrate output
+ffmpeg -i <file name> -c:v vcodec -crf 28 -map 0;a:m:language:eng-c:a acodec -b:a  bitrate -map 0:s:m:lannguaage:eng  -c:s copy output
 ```
 
 This script *should* handle a file directly in the 'base' directory
