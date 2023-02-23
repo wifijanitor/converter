@@ -132,8 +132,9 @@ def convert_file(**kwargs):
         + ' -c:v ' + vcodec
         + ' -crf ' + crf
         + ' -c:a ' + acodec
-        + ' -map 0:m:language:' + lang
-        + ' -b:a ' + bitrate + ' '
+        + ' -map 0:a:m:language:' + lang
+        + ' -b:a ' + bitrate
+        + ' -map 0:s:m:language:' + lang + ' '
         + conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
         shell=True)
     logging.info(f'Done converting {movie}')
