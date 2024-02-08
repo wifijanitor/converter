@@ -182,7 +182,7 @@ def main():
     parseOptions()
     path_exists()
     find_files()
-#    move_org()
+    move_org()
 
 
 if __name__ == '__main__':
