@@ -4,7 +4,7 @@ Script to find video files of a specified size, or greater, and run ffmpeg to tr
 If you want to use other codecs, you can modify the vcodec and acodec variables with which ever codecs you have installed that work with ffmpeg
 default language is english, if you want to keep a different language, you can change the `lang` variable use the three character version of ISO 639
 
-This script does require the "umanize" python package to convert to human readable numbering
+This script does require the "humanize" python package to convert to human readable numbering
 
 ffmpeg can be downloaded from [here](https://ffmpeg.org/download.html)
 
