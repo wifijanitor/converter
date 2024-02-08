@@ -7,6 +7,7 @@ import subprocess
 import shutil
 import logging
 import sys
+import humanize
 from os.path import expanduser
 
 
@@ -52,13 +53,13 @@ def parseOptions():
                         type=int, required=True)
     parser.add_argument('-v', '--version',
                         action='version',
-                        version='%(prog)s 4.1')
+                        version='%(prog)s 4.4')
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
     args = parser.parse_args()
     directory = str(args.directory)
-    size = ((args.size) * 1024**3)
+    size = (args.size) * 1024**3
 
 
 def path_exists():
@@ -85,16 +86,21 @@ def find_files():
     '''
     os.chdir(directory)
     with open(found, 'wt') as file:
-        logging.info('Finding files')
+        logging.info(
+            f'Searching for files in {directory}'
+            f' over {humanize.naturalsize(size, gnu=True)}')
         for f in glob.iglob('**/*.[a,f,m,w]*', recursive=True):
             file_size = os.path.getsize(f)
             if file_size >= size:
+                logging.info(
+                    f'Found  {f} is '
+                    f'{humanize.naturalsize(file_size, gnu=True)}')
                 file.write(f + '\n')
             else:
                 continue
 
 
-def convert_main():
+def move_org():
     with open(found, 'rt') as shows:
         for row in shows:
             file = row.rstrip().split('/')
@@ -106,6 +112,7 @@ def convert_main():
                 shutil.move(directory + '/' + name, org)
                 convert_file(**data)
                 move_conv(**data)
+                clean_up(**data)
             else:
                 folder = file[0]
                 name = file[1]
@@ -115,10 +122,10 @@ def convert_main():
                 shutil.move(directory + '/' + folder + '/' + name, org)
                 convert_file(**data)
                 move_conv(**data)
+                clean_up(**data)
 
 
 def convert_file(**kwargs):
-    folder = kwargs.get('folder', '')
     name = kwargs.get('name')
     movie = kwargs.get('movie')
     '''
@@ -126,15 +133,15 @@ def convert_file(**kwargs):
     '''
     os.chdir(org)
     logging.info(f'Converting {movie}')
+    print(name, movie)
     subprocess.run(
-        'ffmpeg -i ' + '"' + name + '"'
+        'ffmpeg -sn -i ' + '"' + name + '"'
         + ' -map 0:v:0'
         + ' -c:v ' + vcodec
         + ' -crf ' + crf
         + ' -c:a ' + acodec
         + ' -map 0:a:m:language:' + lang
-        + ' -b:a ' + bitrate
-        + ' -map 0:s:m:language:' + lang + ' '
+        + ' -b:a ' + bitrate + ' '
         + conv + '"' + movie + '.mkv' + '"' + ' -hide_banner',
         shell=True)
     logging.info(f'Done converting {movie}')
@@ -142,7 +149,6 @@ def convert_file(**kwargs):
 
 def move_conv(**kwargs):
     folder = kwargs.get('folder', '')
-    name = kwargs.get('name')
     movie = kwargs.get('movie')
     '''
     moves newly converted media back to it's original location
@@ -157,24 +163,26 @@ def move_conv(**kwargs):
         shutil.move(movie + '.mkv', directory)
 
 
-def clean_up():
+def clean_up(**kwargs):
     '''
     cleans out the temporary storage directory
     '''
+    folder = kwargs.get('folder', '')
+    name = kwargs.get('name')
+    movie = kwargs.get('movie')
     os.chdir(org)
-    logging.info("Cleaning up")
-    with open(found, 'rt') as shows:
-        for row in shows:
-            *junk, line = row.rstrip().split('/')
-            os.remove(line)
+    logging.info(f"Removing the origianl version of {movie}")
+    if len(folder) >= 1:
+        os.remove(folder + name)
+    else:
+        os.remove(name)
 
 
 def main():
     parseOptions()
     path_exists()
     find_files()
-    convert_main()
-    clean_up()
+#    move_org()
 
 
 if __name__ == '__main__':
